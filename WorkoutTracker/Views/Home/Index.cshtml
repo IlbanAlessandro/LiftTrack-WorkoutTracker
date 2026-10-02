@@ -1,0 +1,207 @@
+@{
+    ViewData["Title"] = "Workout Tracker";
+}
+
+<header class="toolbar">
+    <div class="toolbar-brand"><i class="fa-solid fa-dumbbell"></i> WORKOUT TRACKER</div>
+    <nav class="toolbar-nav">
+        <button class="tab-btn active" data-tab="dashboard">DASHBOARD</button>
+        <button class="tab-btn" data-tab="exercises">EXERCISES</button>
+        <button class="tab-btn" data-tab="workouts">WORKOUTS</button>
+        <button class="tab-btn" data-tab="progress">PROGRESS</button>
+    </nav>
+    <div class="toolbar-date" id="toolbarDate"></div>
+</header>
+
+<main class="main-content">
+
+    <!-- DASHBOARD — single column stack -->
+    <section id="tab-dashboard" class="tab-section active">
+        <div class="dashboard-stack">
+            <div class="card">
+                <div class="card-label">TOTAL WORKOUTS <span id="dashYear"></span></div>
+                <div class="card-big-number" id="dashTotalCount">—</div>
+            </div>
+            <div class="card">
+                <div class="calendar-header" id="calendarMonthTitle"></div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+            <div class="card">
+                <div class="card-section-title" id="categorySetTitle">TOTAL SETS BY CATEGORY <span id="catSetYear"></span></div>
+                <div id="categorySetsList" class="category-sets-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXERCISES -->
+    <section id="tab-exercises" class="tab-section">
+        <div class="categories-header">
+            <div class="categories-row" id="categoriesRow"></div>
+            <button class="btn btn-primary" id="addCategoryBtn"><i class="fa-solid fa-plus"></i> Add Category</button>
+        </div>
+        <div class="card exercises-card">
+            <div class="card-section-title" id="exercisesListTitle">ALL EXERCISES</div>
+            <div id="exercisesList"></div>
+        </div>
+    </section>
+
+    <!-- WORKOUTS -->
+    <section id="tab-workouts" class="tab-section">
+        <div class="year-filter" id="workoutsYearFilter"></div>
+        <div id="workoutsContent"></div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section id="tab-progress" class="tab-section">
+        <div class="year-filter" id="progressYearFilter"></div>
+        <div class="card progress-card">
+            <div class="card-section-title" id="prTitle">PERSONAL RECORDS</div>
+            <div class="pr-selectors">
+                <select class="select-orange" id="prCategorySelect"><option value="">— Select Category —</option></select>
+                <select class="select-orange" id="prExerciseSelect"><option value="">— Select Exercise —</option></select>
+            </div>
+            <div class="chart-wrap" style="min-height:200px">
+                <canvas id="prChart"></canvas>
+                <div class="no-data" id="prNoData" style="display:none">No data available.</div>
+            </div>
+            <div class="pr-records">
+                <div class="pr-record-item"><i class="fa-regular fa-calendar pr-icon"></i> Current Record: <strong id="prCurrent">—</strong></div>
+                <div class="pr-record-item"><i class="fa-solid fa-trophy pr-icon"></i> Best in <span id="prBestYearLabel"></span>: <strong id="prBest">—</strong></div>
+            </div>
+        </div>
+        <div class="card progress-card">
+            <div class="card-section-title" id="freqTitle">WORKOUT FREQUENCY</div>
+            <div class="freq-totals">
+                <div>Total Workouts: <strong id="freqTotal">0</strong></div>
+                <div>Avg per Month: <strong id="freqAvg">0</strong></div>
+            </div>
+            <div class="chart-wrap"><canvas id="freqChart"></canvas></div>
+        </div>
+        <div class="card progress-card">
+            <div class="card-section-title" id="cardioTitle">CARDIO SUMMARY</div>
+            <div class="cardio-totals">
+                <div>Total Distance: <strong id="cardioTotalDist">0 km</strong></div>
+                <div>Total Duration: <strong id="cardioTotalDur">0 min</strong></div>
+            </div>
+            <div class="charts-row">
+                <div class="chart-wrap half"><div class="chart-label">DISTANCE PER MONTH (km)</div><canvas id="distChart"></canvas></div>
+                <div class="chart-wrap half"><div class="chart-label">DURATION PER MONTH (min)</div><canvas id="durChart"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- MODAL: Add Category -->
+<div class="modal-overlay" id="modalAddCategory" style="display:none">
+    <div class="modal">
+        <div class="modal-header"><h2>Add New Category</h2><button class="modal-close" onclick="closeModal('modalAddCategory')"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal-body">
+            <label class="form-label">Name</label>
+            <input class="form-input" type="text" id="newCategoryName" placeholder="Category name" />
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modalAddCategory')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveCategory()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Add Exercise -->
+<div class="modal-overlay" id="modalAddExercise" style="display:none">
+    <div class="modal">
+        <div class="modal-header"><h2>Add New Exercise</h2><button class="modal-close" onclick="closeModal('modalAddExercise')"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal-body">
+            <label class="form-label">Name</label>
+            <input class="form-input" type="text" id="newExerciseName" placeholder="Exercise name" />
+            <label class="form-label" style="margin-top:12px">Category</label>
+            <select class="form-input" id="newExerciseCategory"></select>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modalAddExercise')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveExercise()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Add/Edit Workout (today only) -->
+<div class="modal-overlay" id="modalWorkout" style="display:none">
+    <div class="modal modal-large">
+        <div class="modal-header"><h2 id="modalWorkoutTitle">ADD WORKOUT</h2><button class="modal-close" onclick="closeModal('modalWorkout')"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal-body">
+            <div class="form-section-title">Categories</div>
+            <div class="checkbox-grid" id="workoutCategories"></div>
+            <div class="form-section-title" style="margin-top:20px">Exercises</div>
+            <div id="workoutExercisesContainer"></div>
+            <div id="addExerciseInline" style="display:none" class="inline-form">
+                <div class="inline-form-row" id="inlineExerciseRow">
+                    <select class="form-input" id="inlineExerciseSelect"><option value="">— Select Exercise —</option></select>
+                </div>
+                <div class="inline-form-row fields-row">
+                    <div class="field-group"><label class="form-label-sm">Weight (kg)</label><input class="form-input-sm" type="number" id="inlineWeight" step="0.5" min="0" placeholder="—" /></div>
+                    <div class="field-group"><label class="form-label-sm">Reps</label><input class="form-input-sm" type="number" id="inlineReps" min="0" placeholder="—" /></div>
+                    <div class="field-group"><label class="form-label-sm">Duration</label><input class="form-input-sm" type="number" id="inlineDuration" step="0.5" min="0" placeholder="—" /></div>
+                    <div class="field-group"><label class="form-label-sm">Unit</label><select class="form-input-sm" id="inlineDurationUnit"><option value="minutes">min</option><option value="seconds">sec</option><option value="hours">hr</option></select></div>
+                    <div class="field-group"><label class="form-label-sm">Distance (km)</label><input class="form-input-sm" type="number" id="inlineDistance" step="0.01" min="0" placeholder="—" /></div>
+                </div>
+                <div class="inline-form-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="cancelInlineForm()">Cancel</button>
+                    <button class="btn btn-primary btn-sm" onclick="submitInlineSet()"><i class="fa-solid fa-plus"></i> Add</button>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="addNewExerciseBtn" onclick="showAddExerciseInline()" style="margin-top:12px"><i class="fa-solid fa-plus"></i> Add New Exercise</button>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modalWorkout')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveWorkout()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Read-Only Workout -->
+<div class="modal-overlay" id="modalWorkoutReadOnly" style="display:none">
+    <div class="modal modal-large">
+        <div class="modal-header"><h2 id="modalReadOnlyTitle">WORKOUT</h2><button class="modal-close" onclick="closeModal('modalWorkoutReadOnly')"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal-body">
+            <div class="form-section-title">Categories</div>
+            <div id="roCategories" class="ro-categories"></div>
+            <div class="form-section-title" style="margin-top:20px">Exercises</div>
+            <div id="roExercises"></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Edit Set -->
+<div class="modal-overlay" id="modalEditSet" style="display:none">
+    <div class="modal">
+        <div class="modal-header"><h2>Edit Set</h2><button class="modal-close" onclick="closeModal('modalEditSet')"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal-body">
+            <input type="hidden" id="editSetWeId" /><input type="hidden" id="editSetWorkoutId" />
+            <div class="fields-row">
+                <div class="field-group"><label class="form-label-sm">Weight (kg)</label><input class="form-input-sm" type="number" id="editWeight" step="0.5" min="0" placeholder="—" /></div>
+                <div class="field-group"><label class="form-label-sm">Reps</label><input class="form-input-sm" type="number" id="editReps" min="0" placeholder="—" /></div>
+                <div class="field-group"><label class="form-label-sm">Duration</label><input class="form-input-sm" type="number" id="editDuration" step="0.5" min="0" placeholder="—" /></div>
+                <div class="field-group"><label class="form-label-sm">Unit</label><select class="form-input-sm" id="editDurationUnit"><option value="minutes">min</option><option value="seconds">sec</option><option value="hours">hr</option></select></div>
+                <div class="field-group"><label class="form-label-sm">Distance (km)</label><input class="form-input-sm" type="number" id="editDistance" step="0.01" min="0" placeholder="—" /></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modalEditSet')">Cancel</button>
+            <button class="btn btn-primary" onclick="submitEditSet()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Confirm -->
+<div class="modal-overlay" id="modalConfirm" style="display:none">
+    <div class="modal modal-sm">
+        <div class="modal-header"><h2>Confirm</h2><button class="modal-close" onclick="closeModal('modalConfirm')"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal-body"><p id="confirmMsg" style="color:var(--text)"></p></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modalConfirm')">Cancel</button>
+            <button class="btn btn-danger" id="confirmOkBtn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>

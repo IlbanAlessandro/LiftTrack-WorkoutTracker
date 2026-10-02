@@ -43,3 +43,8 @@ The application uses EF Core's `EnsureCreated()` method and automatic data seedi
 1. **Clone the repository:**
    ```bash
    git clone [https://github.com/IlbanAlessandro/LiftTrack-WorkoutTracker.git](https://github.com/IlbanAlessandro/LiftTrack-WorkoutTracker.git)
+2. Open the solution:
+Open WorkoutTracker.sln in Visual Studio 2022.
+
+3 .Run the application:
+Press F5 (or click https). On the first run, the application will automatically create the LocalDB schema and seed the 9 categories and 45 default exercises.
